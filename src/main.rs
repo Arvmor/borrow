@@ -1,4 +1,5 @@
 // Local modules
+mod alert;
 mod api;
 
 // Imports
