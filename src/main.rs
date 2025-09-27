@@ -1,6 +1,8 @@
-use std::time::Duration;
-
+// Local modules
 mod api;
+
+// Imports
+use std::time::Duration;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -19,6 +21,4 @@ async fn main() -> anyhow::Result<()> {
         // Wait for the interval
         interval.tick().await;
     }
-
-    Ok(())
 }
