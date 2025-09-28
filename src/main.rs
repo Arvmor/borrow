@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     let vault_id = 9745;
     let id = 14;
 
-    let mut interval = tokio::time::interval(Duration::from_secs(15));
+    let mut interval = tokio::time::interval(Duration::from_secs(5));
     loop {
         // Wait for the interval
         interval.tick().await;
