@@ -67,8 +67,14 @@ async fn main() -> anyhow::Result<()> {
             continue;
         };
 
+        let Ok(new_borrowable) = vault.borrowable.parse::<f64>() else {
+            tracing::error!("Error parsing vault borrowable: {}", vault.borrowable);
+            continue;
+        };
+
         // Check if the vault has changed
-        let percent_change = 0.0025;
+        let percent_change = 0.001;
+        let borrowable = new_borrowable >= 20_000_000_000.;
         let change = (new_total_borrow - old_total_borrow) / old_total_borrow;
         let change_liquidity =
             (new_total_borrow_liquidity - old_total_borrow_liquidity) / old_total_borrow_liquidity;
@@ -77,7 +83,22 @@ async fn main() -> anyhow::Result<()> {
         if change >= percent_change || change_liquidity >= percent_change {
             // Notify
             let message = format!(
-                "Vault {vault_id} id {id}\nHas changed by {change} and {change_liquidity}.\nTotal Borrow: {old_total_borrow} -> {new_total_borrow}\nTotal Borrow Liquidity: {old_total_borrow_liquidity} -> {new_total_borrow_liquidity}"
+                r"Vault {vault_id} id {id}
+                Has changed by {change} and {change_liquidity}.
+                Total Borrow: {old_total_borrow} -> {new_total_borrow}
+                Total Borrow Liquidity: {old_total_borrow_liquidity} -> {new_total_borrow_liquidity}"
+            );
+            if let Err(e) = discord.notify(message) {
+                tracing::error!("Error notifying Discord: {e:?}");
+            }
+        }
+
+        if borrowable {
+            // Notify
+            let message = format!(
+                r"Vault {vault_id} id {id}
+                **Borrowable** ALERT! +20k
+                Borrowable: {new_borrowable}"
             );
             if let Err(e) = discord.notify(message) {
                 tracing::error!("Error notifying Discord: {e:?}");
