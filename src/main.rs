@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     let vault_id = 9745;
     let id = 14;
 
-    let mut interval = tokio::time::interval(Duration::from_secs(60));
+    let mut interval = tokio::time::interval(Duration::from_secs(15));
     loop {
         // Wait for the interval
         interval.tick().await;
@@ -30,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
         let vault = match api::get_vault(vault_id, id) {
             Ok(v) => {
                 tracing::info!("Got vault: {v:#?}");
-                v.total_borrow
+                v
             }
             Err(e) => {
                 tracing::error!("Error getting vault: {e:?}");
@@ -41,11 +41,45 @@ async fn main() -> anyhow::Result<()> {
         // Check if the vault has changed
         let last_vault = cache.entry((vault_id, id)).or_insert(vault.clone());
 
+        // Parse Values
+        let Ok(old_total_borrow) = last_vault.total_borrow.parse::<f64>() else {
+            tracing::error!("Error parsing total borrow: {}", last_vault.total_borrow);
+            continue;
+        };
+        let Ok(old_total_borrow_liquidity) = last_vault.total_borrow_liquidity.parse::<f64>()
+        else {
+            tracing::error!(
+                "Error parsing total borrow liquidity: {}",
+                last_vault.total_borrow_liquidity
+            );
+            continue;
+        };
+
+        let Ok(new_total_borrow) = vault.total_borrow.parse::<f64>() else {
+            tracing::error!("Error parsing vault total borrow: {}", vault.total_borrow);
+            continue;
+        };
+        let Ok(new_total_borrow_liquidity) = vault.total_borrow_liquidity.parse::<f64>() else {
+            tracing::error!(
+                "Error parsing vault total borrow liquidity: {}",
+                vault.total_borrow_liquidity
+            );
+            continue;
+        };
+
         // Check if the vault has changed
-        if *last_vault != vault {
+        let percent_change = 1.0025;
+        let change = (new_total_borrow - old_total_borrow) / old_total_borrow * 100.;
+        let change_liquidity = (new_total_borrow_liquidity - old_total_borrow_liquidity)
+            / old_total_borrow_liquidity
+            * 100.;
+        tracing::debug!("Has changed: {change} - Has changed liquidity: {change_liquidity}");
+
+        if change >= percent_change || change_liquidity >= percent_change {
             // Notify
-            let message =
-                format!("Vault {vault_id} id {id} has changed from {last_vault} to {vault}");
+            let message = format!(
+                "Vault {vault_id} id {id}\nHas changed by {change} and {change_liquidity}.\nTotal Borrow: {old_total_borrow} -> {new_total_borrow}\nTotal Borrow Liquidity: {old_total_borrow_liquidity} -> {new_total_borrow_liquidity}"
+            );
             if let Err(e) = discord.notify(message) {
                 tracing::error!("Error notifying Discord: {e:?}");
             }

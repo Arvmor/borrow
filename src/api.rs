@@ -5,7 +5,7 @@ use std::{collections::HashMap, fmt::Display};
 const API_FLUID_URL: &str = "https://api.fluid.instadapp.io";
 
 /// The token data structure
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FluidToken {
     pub address: String,
@@ -17,7 +17,7 @@ pub struct FluidToken {
 }
 
 /// The liquidity borrow data structure
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FluidLiquidityBorrowData {
     pub borrow: String,
@@ -27,7 +27,7 @@ pub struct FluidLiquidityBorrowData {
 }
 
 /// The vault data structure
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FluidVault {
     pub id: String,
