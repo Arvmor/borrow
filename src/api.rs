@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 /// The base URL for the Fluid API
 const API_FLUID_URL: &str = "https://api.fluid.instadapp.io";
@@ -44,7 +44,7 @@ pub struct FluidVault {
 ///
 ///
 /// `GET /v2/{id}/vaults/{id}`
-pub fn get_vault(vault: &str, id: &str) -> anyhow::Result<FluidVault> {
+pub fn get_vault<V: Display, I: Display>(vault: V, id: I) -> anyhow::Result<FluidVault> {
     tracing::info!("Getting vault {vault} id {id}");
 
     // Build the URL
