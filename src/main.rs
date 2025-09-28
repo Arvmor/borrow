@@ -68,12 +68,11 @@ async fn main() -> anyhow::Result<()> {
         };
 
         // Check if the vault has changed
-        let percent_change = 1.0025;
-        let change = (new_total_borrow - old_total_borrow) / old_total_borrow * 100.;
-        let change_liquidity = (new_total_borrow_liquidity - old_total_borrow_liquidity)
-            / old_total_borrow_liquidity
-            * 100.;
-        tracing::debug!("Has changed: {change} - Has changed liquidity: {change_liquidity}");
+        let percent_change = 0.0025;
+        let change = (new_total_borrow - old_total_borrow) / old_total_borrow;
+        let change_liquidity =
+            (new_total_borrow_liquidity - old_total_borrow_liquidity) / old_total_borrow_liquidity;
+        tracing::info!("Has changed: {change} - Has changed liquidity: {change_liquidity}");
 
         if change >= percent_change || change_liquidity >= percent_change {
             // Notify
@@ -83,9 +82,9 @@ async fn main() -> anyhow::Result<()> {
             if let Err(e) = discord.notify(message) {
                 tracing::error!("Error notifying Discord: {e:?}");
             }
-
-            // Update the cache
-            *last_vault = vault;
         }
+
+        // Update the cache
+        *last_vault = vault;
     }
 }
